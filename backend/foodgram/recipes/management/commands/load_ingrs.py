@@ -6,9 +6,9 @@ from pathlib import Path
 
 
 class Command(BaseCommand):
+
     def handle(self, *args, **kwargs):
         data_path = Path(settings.BASE_DIR) / 'data' / 'ingredients.csv'
-
         try:
             # Установим header=None, так как у нас нет заголовков в CSV файле
             df = pd.read_csv(data_path, encoding='utf-8', header=None)
