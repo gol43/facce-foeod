@@ -1,4 +1,4 @@
-name: Foodgram workflow
+name: Main Foodgram workflow
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
         DB_PORT: 5432
       run: |
         python -m flake8 backend/
-        cd backend/
+        cd backend/foodgram/
         python manage.py test
     
   build_and_push_to_docker_hub:
@@ -59,7 +59,7 @@ jobs:
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
-          context: ./backend/
+          context: ./backend/foodgram/
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
   
@@ -119,7 +119,7 @@ jobs:
       - name: Push to DockerHub
         uses: docker/build-push-action@v4
         with:
-          context: ./nginx/
+          context: ./infra/
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_gateway:latest
 
