@@ -93,17 +93,28 @@ class RecipeSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        return Favorite.objects.filter(
-            user=request.user, recipe_id=obj
-        ).exists()
+        try:
+            return Favorite.objects.filter(
+                user=request.user, recipe_id=obj.id
+            ).exists()
+        except Exception as e:
+            # Обработка ошибки
+            raise ValidationError("Ошибка при проверке избранного: " + str(e),
+                                  code='server_error')
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        return ShoppingCart.objects.filter(
-            user=request.user, recipe_id=obj
-        ).exists()
+        try:
+            return ShoppingCart.objects.filter(
+                user=request.user, recipe_id=obj.id
+            ).exists()
+        except Exception as e:
+            # Обработка ошибки
+            raise ValidationError(
+                "Ошибка при проверке корзины покупок: " + str(e),
+                code='server_error')
 
 
 class CreateRecipeSerializer(serializers.ModelSerializer):
@@ -119,16 +130,20 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         exclude = ["pub_date", ]
 
     def create_ingredients(self, ingredients, recipe):
-        RecipeIngredient.objects.bulk_create(
-            [
-                RecipeIngredient(
-                    recipe=recipe,
-                    ingredient=ingredient.get('id'),
-                    amount=ingredient.get('amount'),
-                )
-                for ingredient in ingredients
-            ]
-        )
+        recipe_ingredients = []
+        for ingredient_data in ingredients:
+            ingredient_id = ingredient_data.get('id')
+            amount = ingredient_data.get('amount')
+            ingredient, created = Ingredient.objects.get_or_create(
+                id=ingredient_id
+            )
+            recipe_ingredient = RecipeIngredient(
+                recipe=recipe,
+                ingredient=ingredient,
+                amount=amount
+            )
+            recipe_ingredients.append(recipe_ingredient)
+        RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
     def create(self, validated_data):
         tags = validated_data.get('tags')
