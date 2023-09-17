@@ -29,6 +29,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('name', 'author', 'tags',)
     inlines = (RecipeIngredientInline, TagsInline)
 
+    # для обязательности tags в админке
     def clean(self):
         if not self.tag.exists():
             raise ValidationError('У рецепта должен быть хотя бы один тег.')
