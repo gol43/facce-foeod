@@ -65,32 +65,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     # А вот здесь вот грязюка настоящная начинается, для реальных панков
     def append(self, model, user, pk):
-        # Это было спецом добавленно, просто на слабых пк, как у меня
-        # Ответ бывает не моментальным после нажатия на кнопку,
-        # И это показывает, что всё уже было сделанно итак.
-        obj = model.objects.filter(user=user, recipe__id=pk)
-        if obj.exists():
+        recipe = get_object_or_404(Recipe, id=pk)
+        obj, created = model.objects.get_or_create(user=user, recipe=recipe)
+
+        if not created:
             return Response(
-                {"errors": "Где-то мы это видели"},
+                {"errors": "Рецепт уже добавлен в корзину"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        # Получаем рецепт по айди
-        recipe = get_object_or_404(Recipe, id=pk)
-        # Создаём новую запись в списке избранных,
-        # в которой связывается автор и рецепт.
-        model.objects.create(user=user, recipe=recipe)
-        # После добовления или создания рецепта
-        # нам офк нужен сериализатор, который всё передаст
         serializer = FavoriteRecipesSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def execution(self, model, user, pk):
-        # model = класс модели для списка
-        # user = пользователь, который выполняет запрос post or delete
-        # pk = айдишник рецепта
         obj = model.objects.filter(user=user, recipe__id=pk)
-        # Здесь всё меняется местами и теперь при
-        # существовании мы просто удаляем объект.
         if obj.exists():
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -101,14 +88,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post", "delete"])
     def favorite(self, request, pk):
+        if not request.user.is_authenticated:
+            return Response({"errors": "Требуется аутентификация"},
+                            status=status.HTTP_401_UNAUTHORIZED)
         if request.method == "POST":
-            # вызываем аргументы функции(метода)
             return self.append(Favorite, request.user, pk)
         if request.method == "DELETE":
             return self.execution(Favorite, request.user, pk)
 
     @action(detail=True, methods=["post", "delete"])
     def shopping_cart(self, request, pk):
+        if not request.user.is_authenticated:
+            return Response({"errors": "Требуется аутентификация"},
+                            status=status.HTTP_401_UNAUTHORIZED)
         if request.method == "POST":
             return self.append(ShoppingCart, request.user, pk)
         if request.method == "DELETE":
