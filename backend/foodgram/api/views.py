@@ -59,14 +59,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return CreateRecipeSerializer
 
     def append(self, model, user, pk):
-        recipe = get_object_or_404(Recipe, id=pk)
-        obj, created = model.objects.get_or_create(user=user, recipe=recipe)
-
+        obj, created = model.objects.get_or_create(user=user, recipe__id=pk)
         if not created:
             return Response(
-                {"errors": "Рецепт уже добавлен в корзину"},
+                {"errors": "Где-то мы это видели"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        recipe = get_object_or_404(Recipe, id=pk)
         serializer = FavoriteRecipesSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

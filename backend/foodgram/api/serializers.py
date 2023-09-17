@@ -125,14 +125,16 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         exclude = ["pub_date", ]
 
     def create_ingredients(self, ingredients, recipe):
+        recipe_ing = []
         for ingredient_data in ingredients:
             ingredient, created = Ingredient.objects.get_or_create(
                 id=ingredient_data.get('id'))
-            RecipeIngredient.objects.create(
+            recipe_ing.append(RecipeIngredient(
                 recipe=recipe,
                 ingredient=ingredient,
                 amount=ingredient_data.get('amount')
-            )
+            ))
+        RecipeIngredient.objects.bulk_create(recipe_ing)
 
     def validate(self, data):
         tags = data.get('tags')
@@ -142,17 +144,16 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
 
         return data
 
-    def create_ingredients(self, ingredients, recipe):
-        recipe_ingredients = []
-        for ingredient_data in ingredients:
-            ingredient, created = Ingredient.objects.get_or_create(
-                id=ingredient_data.get('id'))
-            recipe_ingredients.append(RecipeIngredient(
-                recipe=recipe,
-                ingredient=ingredient,
-                amount=ingredient_data.get('amount')
-            ))
-        RecipeIngredient.objects.bulk_create(recipe_ingredients)
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop('ingredients', [])
+        tags = validated_data.pop('tags', [])
+        author = validated_data.pop('author', None)
+        if author is None:
+            author = self.context.get('request').user
+        recipe = Recipe.objects.create(author=author, **validated_data)
+        recipe.tags.set(tags)
+        self.create_ingredients(ingredients_data, recipe)
+        return recipe
 
     def update(self, instance, validated_data):
         instance.ingredients.clear()
