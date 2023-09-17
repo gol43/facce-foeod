@@ -34,7 +34,6 @@ class IngredinetViewSet(viewsets.ModelViewSet):
     serializer_class = IngredientSerializer
     filter_backends = (IngredientFilter,)
     search_fields = ("^name",)
-    # В вебинаре видел, добавил на всякий случай
     pagination_class = None
 
 
@@ -51,19 +50,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
-    # Метод автоматического присвоение авторства рецепту
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def get_serializer_class(self):
-        # SAFE_METHODS = GET, HEAD, OPTIONS(безопасные запросы),
-        # если выполняются эти запросы, то показывается список рецептов
-        # иначе даётся страница для создания и редактирования рецепта
         if self.request.method in SAFE_METHODS:
             return RecipeSerializer
         return CreateRecipeSerializer
 
-    # А вот здесь вот грязюка настоящная начинается, для реальных панков
     def append(self, model, user, pk):
         recipe = get_object_or_404(Recipe, id=pk)
         obj, created = model.objects.get_or_create(user=user, recipe=recipe)
@@ -106,8 +100,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == "DELETE":
             return self.execution(ShoppingCart, request.user, pk)
 
-    # Из редок взято, что доступно только авторизованным пользователям
-    # Собрал из пачки в большей степени, признаю
     @action(detail=False, permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         ingredients = (
