@@ -67,7 +67,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 {"errors": "Рецепт уже добавлен в корзину"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         serializer = FavoriteRecipesSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
