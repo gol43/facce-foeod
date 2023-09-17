@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import (Ingredient, RecipeIngredient,
                      Tag, Recipe,
                      Favorite, ShoppingCart)
+from django.core.exceptions import ValidationError
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -27,6 +28,10 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'author', 'favorites_count', 'pub_date']
     list_filter = ('name', 'author', 'tags',)
     inlines = (RecipeIngredientInline, TagsInline)
+
+    def clean(self):
+        if not self.tag.exists():
+            raise ValidationError('У рецепта должен быть хотя бы один тег.')
 
     @admin.display(description='В избранном')
     def favorites_count(self, obj):
