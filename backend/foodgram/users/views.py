@@ -14,22 +14,19 @@ class CustomUserViewSet(UserViewSet):
     serializer_class = CustomUserSerializer
     pagination_class = LimitPageNumberPagination
 
-    # взял из chatgpt
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, **kwargs):
         """Подписывает или отписывает на другого пользователя."""
-        user = request.user
         author = get_object_or_404(User, id=self.kwargs.get("id"))
         if request.method == "POST":
-            # Попытка подписки
-            if user == author:
+            if request.user == author:
                 return Response(
                     {"error": "Вы не можете подписаться на самого себя."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             subscription, created = Subscribe.objects.get_or_create(
-                user=user,
+                user=request.user,
                 author=author
             )
             if not created:
@@ -43,7 +40,8 @@ class CustomUserViewSet(UserViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == "DELETE":
             try:
-                subscription = Subscribe.objects.get(user=user, author=author)
+                subscription = Subscribe.objects.get(user=request.user,
+                                                     author=author)
             except Subscribe.DoesNotExist:
                 return Response(
                     {"error": "Вы не подписаны на этого пользователя."},
@@ -53,8 +51,6 @@ class CustomUserViewSet(UserViewSet):
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # список подписок
-    # взял с пачки
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         queryset = User.objects.filter(following__user=request.user)

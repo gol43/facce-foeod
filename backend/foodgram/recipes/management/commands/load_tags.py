@@ -2,7 +2,6 @@ from django.core.management import BaseCommand
 from recipes.models import Tag
 
 
-# Увидел, что кого-то в пачке просили это сделать на ревью
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         data = [

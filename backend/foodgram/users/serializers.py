@@ -5,12 +5,9 @@ from recipes.models import Recipe
 User = get_user_model()
 
 
-# Изначально нашёл djoser.serializer UserSerializer and UserCreateSerializer
-# Но решил, что set_password, который шифрует пароли, подойдёт лучше,
-# ввиду своей компактности
 class CustomUserCreateSerializer(serializers.ModelSerializer):
     """Сериализатор создания пользователя"""
-    password = serializers.CharField(write_only=True)  # Добавляем поле пароля
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
@@ -66,15 +63,10 @@ class SubscribeSerializer(CustomUserSerializer):
         return Recipe.objects.filter(author=obj).count()
 
     def get_recipes(self, obj):
-        # узнаём параметры запроса
         request = self.context.get('request')
-        # получаем int значение recipes_limit из запроса клиента
         limit = request.GET.get('recipes_limit')
-        # recipes = related_name у author в модели Recipe
         recipes = obj.recipes.all()
-        # Здесь обрабатываем случаи отсутствия и None limit
         if limit:
-            # и достаём первые условно 5 рецептов
             recipes = recipes[: int(limit)]
         serializer = FavoriteRecipesSerializer(recipes, many=True,
                                                read_only=True)

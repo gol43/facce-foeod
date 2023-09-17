@@ -4,7 +4,6 @@ from colorfield.fields import ColorField
 from users.models import User
 
 
-# Ограничения взяты из redoc
 class Ingredient(models.Model):
     name = models.CharField(max_length=200)
     measurement_unit = models.CharField(max_length=200)
@@ -54,7 +53,6 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # Для того, чтобы  по дате поста доставались рецепты
         ordering = ['-pub_date']
 
     def __str__(self):
