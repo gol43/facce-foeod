@@ -2,6 +2,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from colorfield.fields import ColorField
 from users.models import User
+from django.core.exceptions import ValidationError
 
 
 class Ingredient(models.Model):
@@ -52,6 +53,10 @@ class Recipe(models.Model):
         help_text='Время готовки в минутах',
         validators=[MinValueValidator(1)])
     pub_date = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        if not self.tags.exists():
+            raise ValidationError('У рецепта должен быть хотя бы один тег.')
 
     class Meta:
         ordering = ['-pub_date']
