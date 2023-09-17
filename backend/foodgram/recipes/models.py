@@ -66,7 +66,7 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,)
-    amount = models.IntegerField(validators=[MinValueValidator(1)])
+    amount = models.IntegerField(validators=[MinValueValidator(1)], null=True)
 
     def __str__(self):
         return f'Рецепт:{self.recipe} имеет ингредиент->{self.ingredient}'
