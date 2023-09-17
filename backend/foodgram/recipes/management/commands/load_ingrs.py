@@ -10,7 +10,6 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         data_path = Path(settings.BASE_DIR) / 'data' / 'ingredients.csv'
         try:
-            # Установим header=None, так как у нас нет заголовков в CSV файле
             df = pd.read_csv(data_path, encoding='utf-8', header=None)
 
             ingredients_to_create = []
@@ -20,7 +19,7 @@ class Command(BaseCommand):
 
                 if ingredient_name:
                     ingredients_to_create.append(
-                        RecipeIngredient(  # Изменил на RecipeIngredient
+                        RecipeIngredient(
                             ingredient=Ingredient.objects.get_or_create(
                                 name=ingredient_name,
                                 measurement_unit=measurement_unit

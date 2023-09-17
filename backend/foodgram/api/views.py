@@ -59,14 +59,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return CreateRecipeSerializer
 
     def append(self, model, user, pk):
-        obj = model.objects.filter(user=user, recipe__id=pk)
-        if obj.exists():
+        recipe = get_object_or_404(Recipe, id=pk)
+        obj, created = model.objects.get_or_create(user=user, recipe=recipe)
+
+        if not created:
             return Response(
-                {"errors": "Где-то мы это видели"},
+                {"errors": "Рецепт уже добавлен в корзину"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        recipe = get_object_or_404(Recipe, id=pk)
-        model.objects.create(user=user, recipe=recipe)
         serializer = FavoriteRecipesSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -82,6 +82,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post", "delete"])
     def favorite(self, request, pk):
+        if not request.user.is_authenticated:
+            return Response({"errors": "Требуется аутентификация"},
+                            status=status.HTTP_401_UNAUTHORIZED)
         if request.method == "POST":
             return self.append(Favorite, request.user, pk)
         if request.method == "DELETE":
@@ -89,6 +92,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post", "delete"])
     def shopping_cart(self, request, pk):
+        if not request.user.is_authenticated:
+            return Response({"errors": "Требуется аутентификация"},
+                            status=status.HTTP_401_UNAUTHORIZED)
         if request.method == "POST":
             return self.append(ShoppingCart, request.user, pk)
         if request.method == "DELETE":
