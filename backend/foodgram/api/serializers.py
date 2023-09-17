@@ -67,8 +67,8 @@ class RecipeTagSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Банально рецепты"""
     author = CustomUserSerializer(read_only=True, required=False)
-    ingredients = serializers.SerializerMethodField(required=False)
-    tags = serializers.SerializerMethodField(required=False)
+    ingredients = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
