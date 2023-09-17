@@ -22,17 +22,16 @@ class RecipeFilter(FilterSet):
                                              to_field_name='slug',
                                              queryset=Tag.objects.all(),)
 
-# Я пытался всячески убрать этот return, но никак. Всегда возникали проблемы
     def filter_is_favorited(self, queryset, name, value):
         client = self.request.user
         if value and client.is_authenticated:
-            return queryset.filter(favorites__user=client)
+            queryset.filter(favorites__user=client)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         client = self.request.user
         if value and client.is_authenticated:
-            return queryset.filter(shopping_cart__user=client)
+            queryset.filter(shopping_cart__user=client)
         return queryset
 
     class Meta:
