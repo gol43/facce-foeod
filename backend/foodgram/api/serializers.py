@@ -112,9 +112,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 class CreateRecipeSerializer(serializers.ModelSerializer):
     """create/update для рецептов"""
     author = CustomUserSerializer(read_only=True, required=False)
-    ingredients = AddIngredientRecipeSerializer(many=True)
+    ingredients = AddIngredientRecipeSerializer(many=True, required=True)
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
-                                              many=True)
+                                              many=True, required=True)
     image = Base64ImageField()
 
     class Meta:
