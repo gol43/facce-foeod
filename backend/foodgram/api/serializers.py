@@ -111,15 +111,15 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         exclude = ["pub_date", ]
 
     def create_ingredients(self, ingredients, recipe):
-        recipe_ing = []
-        for ingredient_data in ingredients:
-            ingredient, created = Ingredient.objects.get_or_create(
-                id=ingredient_data.get('id'))
-            recipe_ing.append(RecipeIngredient(
+        recipe_ing = [
+            RecipeIngredient(
                 recipe=recipe,
-                ingredient=ingredient,
-                amount=ingredient_data.get('amount')
-            ))
+                ingredient=Ingredient.objects.get_or_create(
+                    id=ingredient_data['id'])[0],
+                amount=ingredient_data['amount']
+            )
+            for ingredient_data in ingredients
+        ]
         RecipeIngredient.objects.bulk_create(recipe_ing)
 
     def validate(self, data):
