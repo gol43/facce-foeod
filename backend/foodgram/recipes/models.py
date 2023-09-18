@@ -31,11 +31,11 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='ingredients')
+        related_name='recipes')
     tags = models.ManyToManyField(
         Tag,
         through='RecipeTag',
-        related_name='tags',
+        related_name='recipes',
         blank=False)
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -63,10 +63,12 @@ class Recipe(models.Model):
 class RecipeTag(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE,)
+        on_delete=models.CASCADE,
+        related_name='recipe_tags')
     tag = models.ForeignKey(
         Tag,
-        on_delete=models.CASCADE,)
+        on_delete=models.CASCADE,
+        related_name='tag_recipes')
 
     def __str__(self):
         return f'Рецепт: {self.recipe} имеет тег(и) -> {self.tag}'
@@ -76,10 +78,12 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        null=True)
+        null=True,
+        related_name='recipe_ingredients')
     ingredient = models.ForeignKey(
         Ingredient,
-        on_delete=models.CASCADE,)
+        on_delete=models.CASCADE,
+        related_name='ingredient_recipes')
     amount = models.IntegerField(validators=[MinValueValidator(1)], null=True)
 
     def __str__(self):

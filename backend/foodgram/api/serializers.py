@@ -67,9 +67,8 @@ class RecipeTagSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Банально рецепты"""
     author = CustomUserSerializer(read_only=True, required=False)
-    ingredients = RecipeIngredientSerializer(source='recipeingredient_set',
-                                             many=True)
-    tags = RecipeTagSerializer(source='recipetag_set', many=True)
+    ingredients = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -79,11 +78,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_ingredients(self, obj):
-        ingredients = RecipeIngredient.objects.filter(recipe=obj)
+        ingredients = obj.recipe_ingredients.all()
         return RecipeIngredientSerializer(ingredients, many=True).data
 
     def get_tags(self, obj):
-        tags = RecipeTag.objects.filter(recipe=obj)
+        tags = obj.recipe_tags.all()
         return RecipeTagSerializer(tags, many=True).data
 
     def get_is_favorited(self, obj):
