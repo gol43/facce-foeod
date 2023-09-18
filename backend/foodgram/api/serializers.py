@@ -77,13 +77,12 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = '__all__'
 
-# 1
     def get_ingredients(self, obj):
-        ingredients = RecipeIngredient.objects.filter(recipe=obj)
+        ingredients = obj.recipes.all()
         return RecipeIngredientSerializer(ingredients, many=True).data
 
     def get_tags(self, obj):
-        tags = RecipeTag.objects.filter(recipe=obj)
+        tags = obj.recipes.all()
         return RecipeTagSerializer(tags, many=True).data
 
     def get_is_favorited(self, obj):
