@@ -102,9 +102,6 @@ class Favorite(models.Model):
     def __str__(self):
         return f'{self.user} добавил в избранное "{self.recipe}"'
 
-    class Meta:
-        unique_together = ('user', 'recipe')
-
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
@@ -118,6 +115,3 @@ class ShoppingCart(models.Model):
 
     def __str__(self):
         return f'{self.user} добавил "{self.recipe}" в список покупок'
-
-    class Meta:
-        unique_together = ('user', 'recipe')
