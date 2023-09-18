@@ -1,6 +1,6 @@
 import pandas as pd
 from django.core.management.base import BaseCommand
-from recipes.models import Ingredient, RecipeIngredient
+from recipes.models import Ingredient
 from django.conf import settings
 from pathlib import Path
 
@@ -18,19 +18,13 @@ class Command(BaseCommand):
                 measurement_unit = row[1]
 
                 if ingredient_name:
-                    amount = 1
-                    ingredients_to_create.append(
-                        RecipeIngredient(
-                            ingredient=Ingredient.objects.get_or_create(
-                                name=ingredient_name,
-                                measurement_unit=measurement_unit
-                            )[0],
-                            amount=amount
-                        )
+                    ingredient, created = Ingredient.objects.get_or_create(
+                        name=ingredient_name,
+                        measurement_unit=measurement_unit
                     )
 
-            RecipeIngredient.objects.bulk_create(ingredients_to_create,
-                                                 ignore_conflicts=True)
+            Ingredient.objects.bulk_create(ingredients_to_create,
+                                           ignore_conflicts=True)
 
             self.stdout.write(self.style.SUCCESS(
                 'Ингредиенты успешно добавлены'))

@@ -13,6 +13,7 @@ class IngredientAdmin(admin.ModelAdmin):
 class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
     extra = 1
+    min_num = 1
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -22,6 +23,7 @@ class TagAdmin(admin.ModelAdmin):
 class TagsInline(admin.TabularInline):
     model = Tag.recipes.through
     extra = 1
+    min_num = 1
 
 
 class RecipeAdmin(admin.ModelAdmin):

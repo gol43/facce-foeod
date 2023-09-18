@@ -67,34 +67,28 @@ class RecipeTagSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Банально рецепты"""
     author = CustomUserSerializer(read_only=True, required=False)
-    ingredients = serializers.SerializerMethodField()
-    tags = serializers.SerializerMethodField()
+    ingredients = RecipeIngredientSerializer(source='recipeingredient_set',
+                                             many=True)
+    tags = RecipeTagSerializer(source='recipetag_set', many=True)
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = [
-            'id',
-            'tags',
-            'author',
-            'ingredients',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
-            'is_favorited',
-            'is_in_shopping_cart'
-        ]
+        fields = '__all__'
 
-    def get_ingredients(self, obj):
-        ingredients = RecipeIngredient.objects.filter(recipe=obj)
-        return RecipeIngredientSerializer(ingredients, many=True).data
+    def get_is_favorited(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return obj.favorites.filter(user=request.user).exists()
 
-    def get_tags(self, obj):
-        tags = RecipeTag.objects.filter(recipe=obj)
-        return RecipeTagSerializer(tags, many=True).data
+    def get_is_in_shopping_cart(self, obj):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return obj.shopping_cart.filter(user=request.user).exists()
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
@@ -147,6 +141,16 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         author = validated_data.pop('author', None)
         if author is None:
             author = self.context.get('request').user
+
+        # Проверяем уникальность ингредиентов
+        ingredient_ids = set()
+        for ingredient_data in ingredients_data:
+            ingredient_id = ingredient_data.get('id')
+            if ingredient_id in ingredient_ids:
+                raise serializers.ValidationError(
+                    f"Ингредиент с ID {ingredient_id} уже добавлен к рецепту.")
+            ingredient_ids.add(ingredient_id)
+
         recipe = Recipe.objects.create(author=author, **validated_data)
         recipe.tags.set(tags)
         self.create_ingredients(ingredients_data, recipe)

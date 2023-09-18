@@ -60,6 +60,18 @@ class Recipe(models.Model):
         return f'Рецепт: {self.name}'
 
 
+class RecipeTag(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,)
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE,)
+
+    def __str__(self):
+        return f'Рецепт: {self.recipe} имеет тег(и) -> {self.tag}'
+
+
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
@@ -72,18 +84,6 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return f'Рецепт:{self.recipe} имеет ингредиент->{self.ingredient}'
-
-
-class RecipeTag(models.Model):
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,)
-    tag = models.ForeignKey(
-        Tag,
-        on_delete=models.CASCADE,)
-
-    def __str__(self):
-        return f'Рецепт: {self.recipe} имеет тег(и) -> {self.tag}'
 
 
 class Favorite(models.Model):
