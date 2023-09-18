@@ -63,12 +63,10 @@ class Recipe(models.Model):
 class RecipeTag(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE,
-        related_name='recipe_tags')
+        on_delete=models.CASCADE,)
     tag = models.ForeignKey(
         Tag,
-        on_delete=models.CASCADE,
-        related_name='tag_recipes')
+        on_delete=models.CASCADE,)
 
     def __str__(self):
         return f'Рецепт: {self.recipe} имеет тег(и) -> {self.tag}'
@@ -78,12 +76,10 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        null=True,
-        related_name='recipe_ingredients')
+        null=True)
     ingredient = models.ForeignKey(
         Ingredient,
-        on_delete=models.CASCADE,
-        related_name='ingredient_recipes')
+        on_delete=models.CASCADE,)
     amount = models.IntegerField(validators=[MinValueValidator(1)], null=True)
 
     def __str__(self):
