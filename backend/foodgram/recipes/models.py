@@ -31,11 +31,11 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipes')
+        related_name='ingredients')
     tags = models.ManyToManyField(
         Tag,
         through='RecipeTag',
-        related_name='recipes',
+        related_name='tags',
         blank=False)
     ingredients = models.ManyToManyField(
         Ingredient,
@@ -85,6 +85,9 @@ class RecipeIngredient(models.Model):
     def __str__(self):
         return f'Рецепт:{self.recipe} имеет ингредиент->{self.ingredient}'
 
+    class Meta:
+        unique_together = ('recipe', 'ingredient')
+
 
 class Favorite(models.Model):
     user = models.ForeignKey(
@@ -99,6 +102,9 @@ class Favorite(models.Model):
     def __str__(self):
         return f'{self.user} добавил в избранное "{self.recipe}"'
 
+    class Meta:
+        unique_together = ('user', 'recipe')
+
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
@@ -112,3 +118,6 @@ class ShoppingCart(models.Model):
 
     def __str__(self):
         return f'{self.user} добавил "{self.recipe}" в список покупок'
+
+    class Meta:
+        unique_together = ('user', 'recipe')

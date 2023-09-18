@@ -3,6 +3,24 @@ from .models import (Ingredient, RecipeIngredient,
                      Tag, Recipe,
                      Favorite, ShoppingCart)
 from django.core.exceptions import ValidationError
+from django import forms
+
+
+class RecipeForm(forms.ModelForm):
+    class Meta:
+        model = Recipe
+        fields = '__all__'
+
+    def clean_ingredients(self):
+        ingredients = self.cleaned_data.get('ingredients')
+        ingredient_set = set()
+
+        for ingredient in ingredients:
+            if ingredient in ingredient_set:
+                raise ValidationError('Ингредиенты не могут повторяться.')
+            ingredient_set.add(ingredient)
+
+        return ingredients
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -21,7 +39,7 @@ class TagAdmin(admin.ModelAdmin):
 
 
 class TagsInline(admin.TabularInline):
-    model = Tag.recipes.through
+    model = Recipe.tags.through
     extra = 1
     min_num = 1
 
@@ -30,6 +48,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'author', 'favorites_count', 'pub_date']
     list_filter = ('name', 'author', 'tags',)
     inlines = (RecipeIngredientInline, TagsInline)
+    form = RecipeForm
 
     # для обязательности tags в админке
     def clean(self):
