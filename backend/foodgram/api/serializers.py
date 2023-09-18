@@ -157,27 +157,23 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        # Получаем существующие ингредиенты рецепта
-        existing_ingredients = set(
-            instance.ingredients.values_list('ingredient__id',
-                                             flat=True))
+        # Сначала очистим все существующие ингредиенты рецепта
+        instance.ingredients.clear()
 
         if 'ingredients' in validated_data:
-            new_ingredients = validated_data['ingredients']
+            ingredients_data = validated_data['ingredients']
+            ingredient_ids = set()
 
-            # Проверяем уникальность ингредиентов в новом списке
-            for ingredient_data in new_ingredients:
+            for ingredient_data in ingredients_data:
                 ingredient_id = ingredient_data.get('id')
-                if ingredient_id in existing_ingredients:
+                # Проверяем уникальность ингредиента
+                if ingredient_id in ingredient_ids:
                     raise serializers.ValidationError(
-                        f"Ингредиент {ingredient_id} уже добавлен к рецепту.")
-                existing_ingredients.add(ingredient_id)
+                        f"Ингредиент с{ingredient_id} уже добавлен к рецепту.")
+                ingredient_ids.add(ingredient_id)
 
-            # Очищаем существующие ингредиенты и добавляем новые
-            instance.ingredients.clear()
-            for ingredient_data in new_ingredients:
                 ingredient, created = Ingredient.objects.get_or_create(
-                    id=ingredient_data.get('id'))
+                    id=ingredient_id)
                 RecipeIngredient.objects.create(
                     recipe=instance,
                     ingredient=ingredient,
