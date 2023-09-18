@@ -22,16 +22,31 @@ class RecipeFilter(FilterSet):
                                              to_field_name='slug',
                                              queryset=Tag.objects.all(),)
 
+# Я пробывал эти два варианта, также делал и для shopping cart
+# Но  у меня просто все рецепты попадают в избранные и покупки
+# и не хотят удалться потом.
+# 1 Вариант:
+    # def filter_is_favorited(self, queryset, name, value):
+    #     client = self.request.user
+    #     if value and client.is_authenticated:
+    #         queryset.filter(favorites__user=client)
+    #     return queryset
+# 2 Вариант:
+    # def filter_is_favorited(self, queryset, name, value):
+    #     client = self.request.user
+    #     if value and client.is_authenticated:
+    #         pass
+    #     return queryset
     def filter_is_favorited(self, queryset, name, value):
         client = self.request.user
         if value and client.is_authenticated:
-            queryset.filter(favorites__user=client)
+            return queryset.filter(favorites__user=client)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         client = self.request.user
         if value and client.is_authenticated:
-            queryset.filter(shopping_cart__user=client)
+            return queryset.filter(shopping_cart__user=client)
         return queryset
 
     class Meta:
