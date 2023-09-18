@@ -141,10 +141,9 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         ingredient_ids = set()
         for ingredient_data in ingredients_data:
             ingredient_id = ingredient_data.get('id')
-            ingredient_naming = ingredient_data.get('name')
             if ingredient_id in ingredient_ids:
                 raise serializers.ValidationError(
-                    f"Ингредиент: {ingredient_naming} уже добавлен к рецепту.")
+                    f"Ингредиент с ID {ingredient_id} уже добавлен к рецепту.")
             ingredient_ids.add(ingredient_id)
 
         recipe = Recipe.objects.create(author=author, **validated_data)
