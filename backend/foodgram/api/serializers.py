@@ -157,36 +157,40 @@ class CreateRecipeSerializer(serializers.ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
-        # Получаем список ингредиентов из входных данных
-        ingredients_data = validated_data.get('ingredients', [])
+        # Обработка обновления рецепта
+        instance.name = validated_data.get('name', instance.name)
+        # Добавьте обработку других полей рецепта, которые нужно обновить
 
-        # Проверяем уникальность ингредиентов
-        ingredient_ids = set()
-        for ingredient_data in ingredients_data:
-            ingredient_id = ingredient_data.get('id')
-            if ingredient_id in ingredient_ids:
-                raise serializers.ValidationError(
-                    f"Ингредиент с ID {ingredient_id} уже добавлен к рецепту.")
-            ingredient_ids.add(ingredient_id)
+        # Обработка обновления ингредиентов
+        if 'ingredients' in validated_data:
+            ingredients_data = validated_data['ingredients']
 
-        # Удаляем текущие ингредиенты рецепта
-        instance.ingredients.clear()
+            # Проверяем уникальность ингредиентов
+            ingredient_ids = set()
+            for ingredient_data in ingredients_data:
+                ingredient_id = ingredient_data.get('id')
+                if ingredient_id in ingredient_ids:
+                    raise serializers.ValidationError(
+                        f"Ингредиент с{ingredient_id} уже добавлен к рецепту.")
+                ingredient_ids.add(ingredient_id)
 
-        # Создаем новые ингредиенты
-        for ingredient_data in ingredients_data:
-            ingredient, created = Ingredient.objects.get_or_create(
-                id=ingredient_data.get('id'))
-            RecipeIngredient.objects.create(
-                recipe=instance,
-                ingredient=ingredient,
-                amount=ingredient_data.get('amount')
-            )
+            instance.ingredients.clear()
 
-        # Обновляем теги
+            for ingredient_data in ingredients_data:
+                ingredient, created = Ingredient.objects.get_or_create(
+                    id=ingredient_data.get('id'))
+                RecipeIngredient.objects.create(
+                    recipe=instance,
+                    ingredient=ingredient,
+                    amount=ingredient_data.get('amount')
+                )
+
+        # Обработка обновления тегов
         if 'tags' in validated_data:
-            instance.tags.set(validated_data.pop('tags'))
+            instance.tags.set(validated_data['tags'])
 
-        return super().update(instance, validated_data)
+        instance.save()
+        return instance
 
     def to_representation(self, instance):
         return RecipeSerializer(instance, context={
