@@ -50,10 +50,12 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline, TagsInline)
     form = RecipeForm
 
-    # для обязательности tags в админке
-    def clean(self):
-        if not self.tag.exists():
-            raise ValidationError('У рецепта должен быть хотя бы один тег.')
+    def save_model(self, request, obj, form, change):
+        if not change:
+            if not obj.ingredients.exists() or not obj.tags.exists():
+                raise ValidationError(
+                    'У рецепта должен быть один ингредиент и один тег.')
+        super().save_model(request, obj, form, change)
 
     @admin.display(description='В избранном')
     def favorites_count(self, obj):
