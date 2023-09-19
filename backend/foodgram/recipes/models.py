@@ -72,6 +72,9 @@ class RecipeTag(models.Model):
     def __str__(self):
         return f'Рецепт: {self.recipe} имеет тег(и) -> {self.tag}'
 
+    class Meta:
+        unique_together = ('recipe', 'tag')
+
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(

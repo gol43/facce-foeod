@@ -4,6 +4,31 @@ from .models import (Ingredient, RecipeIngredient,
                      Favorite, ShoppingCart)
 from django.core.exceptions import ValidationError
 from django import forms
+from django.forms import BaseInlineFormSet
+
+
+class RecipeIngredientFormset(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+
+        # Проверяем, есть ли хотя бы один ингредиент
+        has_ingredients = any(
+            form.cleaned_data and not form.cleaned_data.get(
+                'DELETE') for form in self.forms if form.cleaned_data)
+        if not has_ingredients:
+            raise ValidationError('Необходимо указать ингредиент для рецепта.')
+
+
+class RecipeTagFormset(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+
+        # Проверяем, есть ли хотя бы один ингредиент
+        has_tags = any(
+            form.cleaned_data and not form.cleaned_data.get(
+                'DELETE') for form in self.forms if form.cleaned_data)
+        if not has_tags:
+            raise ValidationError('Необходимо указать тег для рецепта.')
 
 
 class RecipeForm(forms.ModelForm):
@@ -22,6 +47,17 @@ class RecipeForm(forms.ModelForm):
 
         return ingredients
 
+    def clean_tags(self):
+        tags = self.cleaned_data.get('tags')
+        tag_set = set()
+
+        for tag in tags:
+            if tag in tag_set:
+                raise ValidationError('Теги не могут повторяться.')
+            tag_set.add(tag)
+
+        return tags
+
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'measurement_unit']
@@ -32,6 +68,7 @@ class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
     extra = 1
     min_num = 1
+    formset = RecipeIngredientFormset
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -42,6 +79,7 @@ class TagsInline(admin.TabularInline):
     model = Recipe.tags.through
     extra = 1
     min_num = 1
+    formset = RecipeTagFormset
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -49,11 +87,6 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('name', 'author', 'tags',)
     inlines = (RecipeIngredientInline, TagsInline)
     form = RecipeForm
-
-    # для обязательности tags в админке
-    def clean(self):
-        if not self.tag.exists():
-            raise ValidationError('У рецепта должен быть хотя бы один тег.')
 
     @admin.display(description='В избранном')
     def favorites_count(self, obj):
