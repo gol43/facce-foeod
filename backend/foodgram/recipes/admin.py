@@ -22,6 +22,16 @@ class RecipeForm(forms.ModelForm):
 
         return ingredients
 
+    def clean(self):
+        cleaned_data = super().clean()
+        ingredients = cleaned_data.get('ingredients')
+        tags = cleaned_data.get('tags')
+
+        # Проверяем, что после редактирования остались ингредиенты и теги
+        if not ingredients or not tags:
+            raise ValidationError(
+                'У рецепта должен быть хотя бы один ингредиент и один тег.')
+
 
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'measurement_unit']
@@ -49,13 +59,6 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('name', 'author', 'tags',)
     inlines = (RecipeIngredientInline, TagsInline)
     form = RecipeForm
-
-    def save_model(self, request, obj, form, change):
-        if not change:
-            if not obj.ingredients.exists() or not obj.tags.exists():
-                raise ValidationError(
-                    'У рецепта должен быть один ингредиент и один тег.')
-        super().save_model(request, obj, form, change)
 
     @admin.display(description='В избранном')
     def favorites_count(self, obj):
