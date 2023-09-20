@@ -5,11 +5,15 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext as _
 from django.core.validators import validate_slug
 
-
 name_validator = RegexValidator(
     regex=r'^[a-zA-Zа-яА-Я]+$',
     message=_("Используйте только буквы."),
 )
+
+
+def validate_username(value):
+    if value.lower() == 'me':
+        raise ValidationError('Нельзя использовать "mme" в качестве username.')
 
 
 class User(AbstractUser):
@@ -17,32 +21,18 @@ class User(AbstractUser):
                               unique=True)
     username = models.CharField(max_length=150,
                                 unique=True,
-                                validators=[validate_slug])
+                                validators=[validate_slug, validate_username])
     first_name = models.CharField(max_length=150,
-                                  blank=True,
-                                  null=True,
+                                  blank=False,
+                                  null=False,
                                   validators=[name_validator])
     last_name = models.CharField(max_length=150,
-                                 blank=True,
-                                 null=True,
+                                 blank=False,
+                                 null=False,
                                  validators=[name_validator])
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ("username", 'first_name', 'last_name',)
-
-    def clean(self):
-        super().clean()
-        if not self.first_name and not self.last_name:
-            raise ValidationError({"first_name": _("Обязательное поле."),
-                                   "last_name": _("Обязательное поле.")})
-
-        if self.username == "me":
-            raise ValidationError({"username": _(
-                "Username не может быть 'me'."), })
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.username
