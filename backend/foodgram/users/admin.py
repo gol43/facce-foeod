@@ -1,17 +1,16 @@
 from django.contrib import admin
 from .models import User, Subscribe
+from django.contrib.auth.hashers import make_password
 
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ['username', 'email', 'first_name']
     list_filter = ['username', 'email']
 
-    def create(self, validated_data):
-        password = validated_data.pop('password')
-        user = User(**validated_data)
-        user.set_password(password)
-        user.save()
-        return user
+    def save_model(self, request, obj, form, change):
+        if not obj.pk and obj.password:
+            obj.password = make_password(obj.password)
+        super().save_model(request, obj, form, change)
 
 
 class SubscriptionAdmin(admin.ModelAdmin):
