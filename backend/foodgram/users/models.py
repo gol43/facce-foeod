@@ -13,7 +13,7 @@ name_validator = RegexValidator(
 
 def validate_username(value):
     if value.lower() == 'me':
-        raise ValidationError('Нельзя использовать "mme" в качестве username.')
+        raise ValidationError('Нельзя использовать "me" в качестве username.')
 
 
 class User(AbstractUser):
