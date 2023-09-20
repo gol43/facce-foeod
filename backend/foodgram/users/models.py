@@ -5,7 +5,7 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext as _
 from django.core.validators import validate_slug
 
-# Создаем валидатор, который позволяет только буквы (русские и английские).
+
 name_validator = RegexValidator(
     regex=r'^[a-zA-Zа-яА-Я]+$',
     message=_("Используйте только буквы."),
@@ -31,17 +31,13 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ("username", 'first_name', 'last_name',)
 
     def clean(self):
-        if not self.first_name:
-            raise ValidationError({"first_name": _(
-                "Обязательное поле.")})
-        if not self.last_name:
-            raise ValidationError({"last_name": _(
-                "Обязательное поле.")})
-        if self.username == "me":
-            raise ValidationError({"username": _(
-                "Username не может быть 'me'.")})
-
         super().clean()
+        if not self.first_name and not self.last_name:
+            raise ValidationError({"first_name": _("Обязательное поле."), "last_name": _("Обязательное поле.")})
+
+        if self.username == "me":
+            raise ValidationError({"username": _("Username не может быть 'me'."),})
+
 
     def save(self, *args, **kwargs):
         self.full_clean()
