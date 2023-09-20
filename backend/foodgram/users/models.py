@@ -33,11 +33,12 @@ class User(AbstractUser):
     def clean(self):
         super().clean()
         if not self.first_name and not self.last_name:
-            raise ValidationError({"first_name": _("Обязательное поле."), "last_name": _("Обязательное поле.")})
+            raise ValidationError({"first_name": _("Обязательное поле."),
+                                   "last_name": _("Обязательное поле.")})
 
         if self.username == "me":
-            raise ValidationError({"username": _("Username не может быть 'me'."),})
-
+            raise ValidationError({"username": _(
+                "Username не может быть 'me'."), })
 
     def save(self, *args, **kwargs):
         self.full_clean()
